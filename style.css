@@ -1,0 +1,165 @@
+/* Cores principais do PogFy */
+:root {
+    --cor-fundo: #121212;
+    --cor-texto: #FFFFFF;
+    --cor-destaque-fundo: #2B321A;
+    --cor-destaque-texto: #6B8E23;
+    --cor-pog: #3B82C4;
+    --cor-nog: #C0392B;
+}
+
+/* Remove margens/paddings padrão que o navegador aplica sozinho */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    font-family: sans-serif;
+}
+
+/* Títulos ficam numa cor de destaque */
+h1, h2, h3 {
+    color: var(--cor-destaque-texto);
+}
+
+/* Espaçamento entre as seções principais */
+header,
+main,
+#ranking,
+#chat {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Classe utilitária pra esconder qualquer elemento */
+.oculto {
+    display: none !important;
+}
+
+/* Tela Inicial de Login: Centralizada na tela toda */
+#telaLogin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    gap: 20px;
+}
+
+/* Logo do app na tela de login */
+#logoApp {
+    width: 150px;
+    height: auto;
+}
+
+/* Botão de Login com o Spotify */
+#loginButton {
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+    border: none;
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#loginButton:hover {
+    background-color: var(--cor-destaque-texto);
+    transform: scale(1.05);
+}
+
+/* Header: nome do app de um lado, perfil do usuário do outro */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Container da foto + nome do usuário */
+#perfilUsuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Foto de perfil redonda */
+#fotoUsuario {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Tela Inicial App */
+main,
+#ranking,
+#chat {
+    background-color: #1E1E1E;
+    border-radius: 12px;
+}
+
+/* Campos de mensagem e busca */
+input[type="text"] {
+    background-color: #2A2A2A;
+    border: 1px solid #3A3A3A;
+    color: var(--cor-texto);
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+input[type="text"]:focus {
+    border-color: var(--cor-destaque-texto);
+}
+
+#botaoBuscar,
+#botaoEnviarMensagem {
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+#botaoBuscar:hover,
+#botaoEnviarMensagem:hover {
+    background-color: var(--cor-destaque-texto);
+}
+
+/* Espaçamento entre botões tela inicial */
+#buscaMusica,
+#enviarMensagem {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Logo do Título menu Inicial */
+#logoTitulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#logoHeader {
+    width: 40px;
+    height: 40px;
+}
+
+#appLogado,
+#telaLogin {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}

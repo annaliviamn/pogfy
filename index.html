@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PogFy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Tela de boas vindas, aparece apenas se o usuário não estiver logado -->
+     <section id="telaLogin">
+      <img src="assets/logo.png" alt="Logo do PogFy" id="logoApp">
+        <h1>PogFy</h1>
+        <button id="loginButton">Entrar com Spotify</button>
+     </section>
+
+     <!-- Pós Login -->
+      <div id="appLogado">
+        <header>
+            <!-- Nome do App -->
+             <div id="logoTitulo">
+                <img src="assets/logo.png" alt="Logo do PogFy" id="logoHeader">
+                <h1>PogFy</h1>
+              </div>
+             <!-- Informação do usuário logado: foto e nome, preenchidos via JS -->
+              <div id="perfilUsuario">
+                <img id="fotoUsuario" src="" alt="Foto de Perfil">
+                <span id="nomeUsuario"></span>
+              </div>
+        </header>
+        
+        <main>
+          <h2 id="nomePlaylist">Carregando Playlist...</h2>
+
+          <!-- Busca de Música -->
+           <div id="buscaMusica">
+              <input type="text" id="inputBusca" placeholder="Buscar música">
+              <button id="botaoBuscar">Buscar</button>
+              <ul id="resultadosBusca">
+
+              </ul>
+           </div>
+
+           <!-- Lista de músicas já adicionadas na playlist -->
+           <ul id="listaPlaylist">
+              <!--
+                cada música vai ser criada via JS mais ou menos assim:
+                <li class="itemMusica">
+                 <img class="capaMusica" src="" alt="Capa do Álbum">
+                 <div class="infoMusica">
+                    <span class="nomeMusica"></span>
+                    <span class="nomeArtista"></span>
+                    <span class="adicionadoPor"></span>
+                 </div>
+                 <button class="botaoPog">Pog</button>
+                 <button class="botaoNog">Nog</button>
+                 <span class="contadorReacoesMusica"></span>
+                </li>
+              -->
+           </ul>
+        </main>
+
+        <!-- Ranking -->
+        <section id="ranking">
+          <h2>Ranking</h2>
+
+          <!-- Ranking de quem mais contribuiu com músicas -->
+          <div id="rankingContribuidores">
+            <h3>Quem mais mandou música</h3>
+            <ol id="listaContribuidores">
+
+            </ol>
+          </div>
+
+          <!-- Músicas mais reagidas com POG -->
+          <div id="rankingMusicas">
+            <h3>POG</h3>
+            <ol id="listaMusicasPog">
+
+            </ol>
+          </div>
+
+        </section>
+
+        <!-- Chat -->
+        <section id="chat">
+          <h2>Chat</h2>
+          
+          <!-- Mensagens do Chat -->
+          <div id="mensagensChat">
+            <!--
+            cada mensagem vai ser criada via JS mais ou menos assim:
+            <div class="mensagem">
+              <span class="autorMensagem"></span>
+              <p class="textoMensagem"></p>
+              <button class="botaoPog">Pog</button>
+              <button class="botaoNog">Nog</button>
+              <span class="contadorReacoes"></span>
+            </div>
+            -->
+
+          </div>
+
+          <!-- Campo para enviar nova mensagem -->
+          <div id="enviarMensagem">
+            <input type="text" id="inputMensagem" placeholder="Escreva algo...">
+            <button id="botaoEnviarMensagem">Enviar</button>
+          </div>
+        </section>
+
+      </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
