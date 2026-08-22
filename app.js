@@ -1,3 +1,6 @@
+import { db } from './firebase-config.js';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
 // Variáveis Globais
 const clientId = 'ecc7df9a04c14418b8deba08f82a9909';
 const redirectUri = 'http://127.0.0.1:5500/index.html';
@@ -5,6 +8,7 @@ const scope = 'playlist-modify-public playlist-modify-private user-read-email';
 const CHAVE_ACCESS_TOKEN = 'pogfy_access_token';
 const CHAVE_REFRESH_TOKEN = 'pogfy_refresh_token';
 const CHAVE_CODE_VERIFIER = 'pogfy_code_verifier';
+const CHAVE_PLAYLIST_ID = 'pogfy_playlist_id';
 
 
 // Gera um texto aleatório que vai ser usado como "code verifier" no login do Spotify
@@ -71,8 +75,36 @@ async function redirectToSpotifyAuthorize() {
 
 // Pega o botão de login pelo id, e chama a função de redirecionamento quando for clicado
 document.getElementById('loginButton').addEventListener('click', redirectToSpotifyAuthorize);
+// Chamada para função do botão de buscar quando for clicado
+document.getElementById('botaoBuscar').addEventListener('click', buscarMusica);
+
+// Abrir e fechar modal de Chat e Ranking
+document.getElementById('abrirChat').addEventListener('click', () => {
+    document.getElementById('modalChat').classList.remove('oculto');
+});
+
+document.getElementById('fecharChat').addEventListener('click', () => {
+    document.getElementById('modalChat').classList.add('oculto');
+});
+
+document.getElementById('abrirRanking').addEventListener('click', () => {
+    document.getElementById('modalRanking').classList.remove('oculto');
+});
+
+document.getElementById('fecharRanking').addEventListener('click', () => {
+    document.getElementById('modalRanking').classList.add('oculto');
+});
 
 handleRedirect();
+atualizarTelaLogin();
+
+// Se já tiver token salvo, busca o perfil do usuário ao carregar
+if (localStorage.getItem(CHAVE_ACCESS_TOKEN)) {
+    buscarPerfilUsuario();
+    garantirPlaylist();
+    carregarPlaylist();
+    escutarMensagens();
+}
 
 // Verifica se a URL atual tem um código de autorização do Spotify
 async function handleRedirect() {
@@ -117,6 +149,9 @@ async function handleRedirect() {
 
     atualizarTelaLogin();
     buscarPerfilUsuario();
+
+    // Remove o ?code=... da URL depois de usá-lo, sem recarregar a página
+    window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 // Verifica se o usuário está logado
@@ -136,13 +171,7 @@ function atualizarTelaLogin() {
 
 // Sincroniza foto e nome do perfil do Spotify para o Pogfy
 async function buscarPerfilUsuario() {
-    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
-
-    const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
+    const response = await fetchSpotify('https://api.spotify.com/v1/me');
 
     const data = await response.json();
 
@@ -151,4 +180,305 @@ async function buscarPerfilUsuario() {
     if (data.images && data.images.length > 0) {
         document.getElementById('fotoUsuario').src = data.images[0].url;
     }
+}
+
+// Buscar músicas através da API do Spotify com base no texto digitado
+async function buscarMusica(){
+    const termo = document.getElementById('inputBusca').value;
+    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
+    
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(termo)}&type=track&limit=5`);
+
+    const data = await response.json();
+    const musicas = data.tracks.items;
+
+    const listaResultados = document.getElementById('resultadosBusca');
+    listaResultados.innerHTML = '';
+
+    musicas.forEach(musica => {
+        const item = document.createElement('li');
+        item.classList.add('resultadoMusica');
+
+        const capa = musica.album.images[0] ? musica.album.images[0].url : '';
+
+        item.innerHTML = `
+        <img src="${capa}" alt="Capa do álbum" class="capaResultado">
+        <div class="infoResultado">
+            <span class="nomeResultado">${musica.name}</span>
+            <span class="artistaResultado">${musica.artists[0].name}</span>
+        </div>
+        <button class="botaoAdicionar">Adicionar</button>
+        `;
+
+        const botao = item.querySelector('.botaoAdicionar');
+        botao.addEventListener('click', () => adicionarMusica(musica.uri));
+
+        listaResultados.appendChild(item);
+    });
+}
+
+// Cria a playlist colaborativa do PogFy
+async function criarPlaylist(userId) {
+    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
+
+    const response = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: 'PogFy',
+            description: 'Playlist colaborativa do grupo, feita no PogFy',
+            public: false,
+            collaborative: true
+        })
+    });
+
+    const data = await response.json();
+    
+    // Guarda ID da playlist criada
+    localStorage.setItem('pogfy_playlist_id', data.id);
+
+    console.log(data);
+}
+
+// Garante que existe uma playlist do PogFy
+async function garantirPlaylist() {
+    let playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+
+    if (!playlistId) {
+        await criarPlaylist();
+        playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+    }
+
+    console.log('ID da playlist em uso:', playlistId);
+}
+
+// Busca os dados da playlist (nome, faixas) e atualiza a tela
+async function carregarPlaylist() {
+    const playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+
+    const response = await fetchSpotify(`https://api.spotify.com/v1/playlists/${playlistId}`);
+
+    const data = await response.json();
+
+    // Atualiza o nome da playlist na tela
+    document.getElementById('nomePlaylist').textContent = data.name;
+
+    const listaPlaylist = document.getElementById('listaPlaylist');
+    listaPlaylist.innerHTML = '';
+
+    data.items.items.forEach(itemPlaylist => {
+        console.log(itemPlaylist.added_by);
+        const musica = itemPlaylist.item;
+        const adicionadoPor = itemPlaylist.added_by.id;
+        const capa = musica.album.images[0] ? musica.album.images[0].url: '';
+
+        const item = document.createElement('li');
+        item.classList.add('itemMusica');
+
+        item.innerHTML = `
+            <img src="${capa}" alt="Capa de álbum" class="capaMusica">
+            <div class="infoMusica">
+                <a href="${musica.external_urls.spotify}" target="_blank" class="nomeMusica">${musica.name}</a>
+                <span class="nomeArtista">${musica.artists[0].name}</span>
+                <span class="adicionadoPor">Adicionado por ${adicionadoPor}</span>
+            </div>
+        `;
+
+        listaPlaylist.appendChild(item);
+    });
+
+    montarRanking(data.items.items);
+
+}
+
+// Pede um novo access_token usando o refresh_token
+async function atualizarToken() {
+    const refreshToken = localStorage.getItem(CHAVE_REFRESH_TOKEN);
+
+    const bodyParams = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId
+    });
+
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: bodyParams
+    });
+
+    const data = await response.json();
+
+    if (!data.access_token) {
+        console.error('Erro ao atualizar token:', data);
+        // Limpa os tokens inválidos, fazendo o app pedir novamente o login
+        localStorage.removeItem(CHAVE_ACCESS_TOKEN);
+        localStorage.removeItem(CHAVE_REFRESH_TOKEN);
+        return;
+    }
+
+    localStorage.setItem(CHAVE_ACCESS_TOKEN, data.access_token);
+
+    // O Spotify às vezes manda um refresh_token novo também
+    if (data.refresh_token) {
+        localStorage.setItem(CHAVE_REFRESH_TOKEN, data.refresh_token);
+    }
+}
+
+// Faz uma chamada autenticada à API do Spofity
+async function fetchSpotify(url, opcoes = {}) {
+    let token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
+
+    opcoes.headers = {
+        ...opcoes.headers,
+        'Authorization': `Bearer ${token}`
+    };
+
+    let response = await fetch(url, opcoes);
+
+    // Se o token expirou, renova e tenta de novo, uma única vez
+    if (response.status === 401) {
+        await atualizarToken();
+        token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
+
+        if (!token) {
+            atualizarTelaLogin();
+            throw new Error('Sessão expirada, faça login novamente.')
+        }
+
+        opcoes.headers['Authorization'] = `Bearer ${token}`;
+        response = await fetch(url, opcoes);
+    }
+
+    return response;
+}
+
+// Adiciona uma música na playlist do PogFy, usando o URI da faixa
+async function adicionarMusica(uri) {
+    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
+    const playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+
+    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/items`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            uris:[uri]
+        })
+    });
+
+    const data = await response.json();
+    console.log('Música adicionada:', data);
+}
+
+// Conta quantas músicas cada pessoa adicionou, e mostra o ranking na tela
+function montarRanking(items) {
+    const contagem = {};
+
+    items.forEach(itemPlaylist => {
+        const usuario = itemPlaylist.added_by.id;
+
+        if (!contagem[usuario]) {
+            contagem[usuario] = 0;
+        }
+
+        contagem[usuario]++;
+    });
+
+    const listaContribuidores = document.getElementById('listaContribuidores');
+    listaContribuidores.innerHTML = '';
+
+    let posicao = 1;
+    for (const usuario in contagem) {
+        const item = document.createElement('li');
+        item.classList.add('itemRanking');
+
+        let medalha = '';
+        if (posicao === 1) medalha = '🥇 ';
+        else if (posicao === 2) medalha = '🥈 ';
+        else if (posicao === 3) medalha = '🥉 ';
+
+        item.innerHTML = `
+            <span class="nomeContribuidor">${medalha}${usuario}</span>
+            <span class="quantidadeContribuidor">${contagem[usuario]} música(s)</span>
+        `;
+        listaContribuidores.appendChild(item);
+        posicao++;
+    }
+}
+
+// Enviar uma nova mensagem no chat e salvando ela no Firestore (DB)
+async function enviarMensagem() {
+    const input = document.getElementById('inputMensagem');
+    const texto = input.value.trim();
+
+    // Se estiver vazio, não envia mensagem
+    if (!texto) {
+        return;
+    }
+
+    await addDoc(collection(db, 'mensagens'), {
+        texto: texto,
+        autor: document.getElementById('nomeUsuario').textContent,
+        fotoAutor: document.getElementById('fotoUsuario').src,
+        timestamp: serverTimestamp()
+    });
+
+    input.value = '';
+}
+
+document.getElementById('botaoEnviarMensagem').addEventListener('click', enviarMensagem);
+
+// Escuta as mensagens do Firestore, atualiza a tela sempre que houver alguma edição
+function escutarMensagens() {
+    const mensagensRef = collection(db, 'mensagens');
+    const consultaOrdenada = query(mensagensRef, orderBy('timestamp'));
+
+    onSnapshot(consultaOrdenada, (snapshot) => {
+        const containerMensagens = document.getElementById('mensagensChat');
+        containerMensagens.innerHTML = '';
+
+        const nomeUsuarioLogado = document.getElementById('nomeUsuario').textContent;
+
+        snapshot.forEach((doc) => {
+            const mensagem = doc.data();
+            const ehMinhaMensagem = mensagem.autor === nomeUsuarioLogado;
+
+            const divMensagem = document.createElement('div');
+            divMensagem.classList.add('mensagem');
+            divMensagem.setAttribute('data-id', doc.id);
+
+            const botaoExcluir = ehMinhaMensagem
+              ? `<button class="botaoExcluirMensagem" data-id="${doc.id}">🗑</button>`
+              : '';
+
+            divMensagem.innerHTML = `
+                <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
+                <div class="conteudoMensagem">
+                    <span class="autorMensagem">${mensagem.autor}</span>
+                    <p class="textoMensagem">${mensagem.texto}</p>
+                </div>
+                ${botaoExcluir}
+            `;
+
+            containerMensagens.appendChild(divMensagem);
+        });
+
+        // Clique para excluir recém-criado
+        document.querySelectorAll('.botaoExcluirMensagem').forEach(botao => {
+            botao.addEventListener('click', () => excluirMensagem(botao.dataset.id));
+        });
+
+        containerMensagens.scrollTop = containerMensagens.scrollHeight;
+    });
+}
+
+// Excluir mensagem do chat
+async function excluirMensagem(id) {
+    await deleteDoc(doc(db, 'mensagens', id));
 }

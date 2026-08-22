@@ -19,6 +19,8 @@ body {
     background-color: var(--cor-fundo);
     color: var(--cor-texto);
     font-family: sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
 }
 
 /* Títulos ficam numa cor de destaque */
@@ -159,7 +161,276 @@ input[type="text"]:focus {
 
 #appLogado,
 #telaLogin {
-    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* Busca de Músicas */
+#buscaMusica {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Linha só com o input e botão */
+#linhaBusca {
+    display: flex;
+    gap: 10px;
+}
+
+/* Lista de resultados da busca */
+#resultadosBusca {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+}
+
+#resultadosBusca li {
+    background-color: #2A2A2A;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.resultadoMusica {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #2A2A2A;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.capaResultado {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.infoResultado {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.nomeResultado {
+    font-weight: bold;
+}
+
+.artistaResultado {
+    font-size: 13px;
+    color: #B3B3B3;
+}
+
+.botaoAdicionar {
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+.botaoAdicionar:hover {
+    background-color: var(--cor-destaque-texto);
+    transform: scale(1.05);
+}
+
+/* Visual playlist */
+#listaPlaylist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.itemMusica {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #2A2A2A;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.capaMusica {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.infoMusica {
+    display: flex;
+    flex-direction: column;
+}
+
+.nomeMusica {
+    font-weight: bold;
+    color: var(--cor-texto);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.nomeMusica:hover {
+    text-decoration: underline;
+}
+
+.nomeArtista,
+.adicionadoPor {
+    font-size: 11px;
+}
+
+.adicionadoPor {
+    font-size: 12px;
+    color: #B3B3B3;
+}
+
+/* Ranking */
+#listaContribuidores {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.itemRanking {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2A2A2A;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.nomeContribuidor {
+    font-weight: bold;
+}
+
+.quantidadeContribuidor {
+    font-size: 13px;
+    color: var(--cor-destaque-texto);
+    font-weight: bold;
+}
+
+/* Modal do Chat */
+.botaoFlutuante {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+    border: none;
+    padding: 14px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#abrirChat {
+    transform: translateX(calc(240px - 90px));
+}
+
+#abrirRanking {
+    transform: translateX(calc(-240px + 10px));
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.modalConteudo {
+    background-color: var(--cor-fundo);
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalCabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.modalCabecalho button {
+    background: none;
+    border: none;
+    color: var(--cor-texto);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Layout do Chat */
+#mensagensChat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mensagem {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background-color: #2A2A2A;
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.fotoMensagem {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.conteudoMensagem {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.autorMensagem {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--cor-destaque-texto);
+}
+
+.textoMensagem {
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.botaoExcluirMensagem {
+    background: none;
+    border: none;
+    color: var(--cor-nog);
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
 }

@@ -34,11 +34,11 @@
 
           <!-- Busca de Música -->
            <div id="buscaMusica">
-              <input type="text" id="inputBusca" placeholder="Buscar música">
-              <button id="botaoBuscar">Buscar</button>
-              <ul id="resultadosBusca">
-
-              </ul>
+              <div id="linhaBusca">
+                <input type="text" id="inputBusca" placeholder="Buscar música">
+                <button id="botaoBuscar">Buscar</button>
+              </div>
+              <ul id="resultadosBusca"></ul>
            </div>
 
            <!-- Lista de músicas já adicionadas na playlist -->
@@ -61,55 +61,41 @@
         </main>
 
         <!-- Ranking -->
-        <section id="ranking">
-          <h2>Ranking</h2>
+        <button id="abrirRanking" class="botaoFlutuante botaoRanking">Ranking</button>
 
-          <!-- Ranking de quem mais contribuiu com músicas -->
-          <div id="rankingContribuidores">
+        <!-- Modal Ranking -->
+        <div id="modalRanking" class="oculto modalOverlay">
+          <div class="modalConteudo">
+            <div class="modalCabecalho">
+              <h2>Ranking</h2>
+              <button id="fecharRanking">X</button>
+            </div>
             <h3>Quem mais mandou música</h3>
-            <ol id="listaContribuidores">
-
-            </ol>
+            <ol id="listaContribuidores"></ol>
           </div>
-
-          <!-- Músicas mais reagidas com POG -->
-          <div id="rankingMusicas">
-            <h3>POG</h3>
-            <ol id="listaMusicasPog">
-
-            </ol>
-          </div>
-
-        </section>
+        </div>
 
         <!-- Chat -->
-        <section id="chat">
-          <h2>Chat</h2>
-          
-          <!-- Mensagens do Chat -->
-          <div id="mensagensChat">
-            <!--
-            cada mensagem vai ser criada via JS mais ou menos assim:
-            <div class="mensagem">
-              <span class="autorMensagem"></span>
-              <p class="textoMensagem"></p>
-              <button class="botaoPog">Pog</button>
-              <button class="botaoNog">Nog</button>
-              <span class="contadorReacoes"></span>
+        <button id="abrirChat" class="botaoFlutuante">Chat</button>
+
+        <!-- Modal do Chat -->
+        <div id="modalChat" class="oculto modalOverlay">
+          <div class="modalConteudo">
+            <div class="modalCabecalho">
+              <h2>Chat</h2>
+              <button id="fecharChat">X</button>
             </div>
-            -->
-
+            <div id="mensagensChat"></div>
+            <div id="enviarMensagem">
+              <input type="text" id="inputMensagem" placeholder="Escreva algo">
+              <button id="botaoEnviarMensagem">Enviar</button>
+            </div>
           </div>
-
-          <!-- Campo para enviar nova mensagem -->
-          <div id="enviarMensagem">
-            <input type="text" id="inputMensagem" placeholder="Escreva algo...">
-            <button id="botaoEnviarMensagem">Enviar</button>
-          </div>
-        </section>
+        </div>
 
       </div>
-    
-    <script src="app.js"></script>
+
+      <script type="module" src="firebase-config.js"></script>
+      <script type="module" src="app.js"></script>
 </body>
 </html>
