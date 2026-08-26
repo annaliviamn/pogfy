@@ -195,6 +195,7 @@ async function buscarMusica(){
 
     const data = await response.json();
     const musicas = data.tracks.items;
+    const musicasFiltradas = musica.filter(musica => !idsNaPlaylist.includes(musica.id));
 
     const listaResultados = document.getElementById('resultadosBusca');
     listaResultados.innerHTML = '';
@@ -272,9 +273,8 @@ async function carregarPlaylist() {
     idsNaPlaylist = [];
 
     data.items.items.forEach(itemPlaylist => {
-        console.log(itemPlaylist.added_by);
         const musica = itemPlaylist.item;
-        const musicaFiltradas = musicas.filter(musica => !idsNaPlaylist.includes(musica.id));
+        idsNaPlaylist.push(musica.id);
         const adicionadoPor = itemPlaylist.added_by.id;
         const capa = musica.album.images[0] ? musica.album.images[0].url: '';
 
@@ -629,7 +629,7 @@ async function limparMensagensAntigas() {
 
 // Botão de voltar para a Dashboard
 function voltarHome() {
-    document.getElementById('modalRanking').classList.add('oculto');~
+    document.getElementById('modalRanking').classList.add('oculto');
     document.getElementById('modalChat').classList.add('oculto');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
