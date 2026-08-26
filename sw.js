@@ -12,6 +12,7 @@ const ARQUIVOS_ESSENCIAIS = [
 
 // Instalando, guarda os arquivos essenciais no cache
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NOME).then((cache) => {
             return cache.addAll(ARQUIVOS_ESSENCIAIS);
