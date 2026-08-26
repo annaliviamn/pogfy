@@ -189,6 +189,7 @@ async function buscarPerfilUsuario() {
 
 // Buscar músicas através da API do Spotify com base no texto digitado
 async function buscarMusica(){
+    document.getElementById('listaPlaylist').classList.add('oculto');
     const termo = document.getElementById('inputBusca').value;
     
     const response = await fetchSpotify(`https://api.spotify.com/v1/search?q=${encodeURIComponent(termo)}&type=track&limit=5`);
@@ -631,6 +632,9 @@ async function limparMensagensAntigas() {
 function voltarHome() {
     document.getElementById('modalRanking').classList.add('oculto');
     document.getElementById('modalChat').classList.add('oculto');
+    document.getElementById('listaPlaylist').classList.remove('oculto');
+    document.getElementById('resultadosBusca').innerHTML = '';
+    document.getElementById('inputBusca').value = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
