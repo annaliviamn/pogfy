@@ -3,7 +3,9 @@ import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, delete
 
 // Variáveis Globais
 const clientId = 'ecc7df9a04c14418b8deba08f82a9909';
-const redirectUri = 'http://127.0.0.1:5500/index.html';
+const redirectUri = window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:5500/index.html'
+    : 'https://annaliviamn.github.io/pogfy/';
 const scope = 'playlist-modify-public playlist-modify-private user-read-email';
 const CHAVE_ACCESS_TOKEN = 'pogfy_access_token';
 const CHAVE_REFRESH_TOKEN = 'pogfy_refresh_token';
