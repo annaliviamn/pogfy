@@ -189,9 +189,8 @@ async function buscarPerfilUsuario() {
 // Buscar músicas através da API do Spotify com base no texto digitado
 async function buscarMusica(){
     const termo = document.getElementById('inputBusca').value;
-    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
     
-    const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(termo)}&type=track&limit=5`);
+    const response = await fetchSpotify(`https://api.spotify.com/v1/search?q=${encodeURIComponent(termo)}&type=track&limit=5`);
 
     const data = await response.json();
     const musicas = data.tracks.items;
