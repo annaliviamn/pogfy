@@ -231,7 +231,7 @@ async function criarPlaylist() {
         },
         body: JSON.stringify({
             name: 'PogFy',
-            discription: 'Playlist colaborativa do grupo, feita no PogFy',
+            description: 'Playlist colaborativa do grupo, feita no PogFy',
             public: false,
             collaborative: true
         })

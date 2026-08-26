@@ -1,5 +1,5 @@
 // Cache Service Worker
-const CACHE_NOME = 'pogfy-v1';
+const CACHE_NOME = 'pogfy-v2';
 
 // Arquivos que ficam salvos localmente
 const ARQUIVOS_ESSENCIAIS = [
