@@ -404,10 +404,9 @@ async function fetchSpotify(url, opcoes = {}) {
 
 // Adiciona uma música na playlist do PogFy, usando o URI da faixa
 async function adicionarMusica(uri) {
-    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
     const playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
 
-    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/items`, {
+    const response = await fetchSpotify(`https://api.spotify.com/v1/playlists/${playlistId}/items`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
