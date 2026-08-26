@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Variáveis Globais
 const clientId = 'ecc7df9a04c14418b8deba08f82a9909';
@@ -105,6 +105,7 @@ if (localStorage.getItem(CHAVE_ACCESS_TOKEN)) {
     await carregarPlaylist();
     escutarMensagens();
     escutarReacoesMusicas();
+    limparMensagensAntigas();
 }
 
 // Verifica se a URL atual tem um código de autorização do Spotify
@@ -603,3 +604,29 @@ async function salvarEdicao(idMensagem) {
 }
 
 window.salvarEdicao = salvarEdicao;
+
+// Apaga as mensagens depois de 48 horas
+async function limparMensagensAntigas() {
+    const mensagensRef = collection(db, 'mensagens');
+    const snapshot = await getDoc(mensagensRef);
+
+    const agora = Date.now();
+    const limiteEmMs = 48 * 60 * 60 * 1000;
+
+    snapshot.forEach(async (docSnap) => {
+        const mensagem = docSnap.data();
+
+        if (!mensagem.timestamp) return;
+
+        const dataMensagem = mensagem.timestamp.toDate().getTime();
+
+        if (agora - dataMensagem > limiteEmMs) {
+            await deleteDoc(doc(db, 'mensagens', docSnap.id));
+        }
+    });
+}
+
+// Registra o Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+}
