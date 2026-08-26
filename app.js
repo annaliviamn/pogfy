@@ -195,7 +195,7 @@ async function buscarMusica(){
 
     const data = await response.json();
     const musicas = data.tracks.items;
-    const musicasFiltradas = musica.filter(musica => !idsNaPlaylist.includes(musica.id));
+    const musicasFiltradas = musicas.filter(musica => !idsNaPlaylist.includes(musica.id));
 
     const listaResultados = document.getElementById('resultadosBusca');
     listaResultados.innerHTML = '';
