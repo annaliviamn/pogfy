@@ -12,6 +12,7 @@ const CHAVE_REFRESH_TOKEN = 'pogfy_refresh_token';
 const CHAVE_CODE_VERIFIER = 'pogfy_code_verifier';
 const CHAVE_PLAYLIST_ID = 'pogfy_playlist_id';
 
+let idsNaPlaylist = [];
 
 // Gera um texto aleatório que vai ser usado como "code verifier" no login do Spotify
 function generateCodeVerifier(length) {
@@ -198,7 +199,7 @@ async function buscarMusica(){
     const listaResultados = document.getElementById('resultadosBusca');
     listaResultados.innerHTML = '';
 
-    musicas.forEach(musica => {
+    musicasFiltradas.forEach(musica => {
         const item = document.createElement('li');
         item.classList.add('resultadoMusica');
 
@@ -268,9 +269,12 @@ async function carregarPlaylist() {
     const listaPlaylist = document.getElementById('listaPlaylist');
     listaPlaylist.innerHTML = '';
 
+    idsNaPlaylist = [];
+
     data.items.items.forEach(itemPlaylist => {
         console.log(itemPlaylist.added_by);
         const musica = itemPlaylist.item;
+        const musicaFiltradas = musicas.filter(musica => !idsNaPlaylist.includes(musica.id));
         const adicionadoPor = itemPlaylist.added_by.id;
         const capa = musica.album.images[0] ? musica.album.images[0].url: '';
 
@@ -622,6 +626,15 @@ async function limparMensagensAntigas() {
         }
     });
 }
+
+// Botão de voltar para a Dashboard
+function voltarHome() {
+    document.getElementById('modalRanking').classList.add('oculto');~
+    document.getElementById('modalChat').classList.add('oculto');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.voltarHome = voltarHome;
 
 // Registra o Service Worker
 if ('serviceWorker' in navigator) {
