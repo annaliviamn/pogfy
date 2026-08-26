@@ -607,7 +607,7 @@ window.salvarEdicao = salvarEdicao;
 // Apaga as mensagens depois de 48 horas
 async function limparMensagensAntigas() {
     const mensagensRef = collection(db, 'mensagens');
-    const snapshot = await getDoc(mensagensRef);
+    const snapshot = await getDocs(mensagensRef);
 
     const agora = Date.now();
     const limiteEmMs = 48 * 60 * 60 * 1000;
