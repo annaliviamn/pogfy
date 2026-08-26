@@ -323,11 +323,22 @@ input[type="text"]:focus {
     font-weight: bold;
 }
 
-/* Modal do Chat */
-.botaoFlutuante {
+/* Modal do Chat e Ranking */
+.barraFlutuante {
     position: fixed;
     bottom: 20px;
     left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.botaoFlutuante {
     background-color: var(--cor-destaque-fundo);
     color: var(--cor-texto);
     border: none;
@@ -335,15 +346,6 @@ input[type="text"]:focus {
     border-radius: 30px;
     font-weight: bold;
     cursor: pointer;
-    z-index: 10;
-}
-
-#abrirChat {
-    transform: translateX(calc(240px - 90px));
-}
-
-#abrirRanking {
-    transform: translateX(calc(-240px + 10px));
 }
 
 .modalOverlay {
@@ -433,4 +435,91 @@ input[type="text"]:focus {
     cursor: pointer;
     font-size: 14px;
     flex-shrink: 0;
+}
+
+/* Reações chat POG e NOG */
+.reacoesMensagem {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.botaoReacao {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--cor-texto);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 4px;
+}
+
+.iconeReacao {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* Reações nas Músicas */
+.reacoesMusica {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.botaoReacaoMusica {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--cor-texto);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 4px;
+}
+
+/* Botão para editar mensagem no chat */
+.botaoEditarMensagem,
+.botaoExcluirMensagem {
+    background: none;
+    border: none;
+    color: #B3B3B3;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.botaoEditarMensagem:hover {
+    color: var(--cor-destaque-texto);
+}
+
+.botaoExcluirMensagem:hover {
+    color: var(--cor-nog);
+}
+
+/* Botão para salvar edição mensagem no chat */
+.inputEdicaoMensagem {
+    background-color: #1E1E1E;
+    border: 1px solid var(--cor-destaque-texto);
+    color: var(--cor-texto);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 70%;
+}
+
+.botaoSalvarEdicao {
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 6px;
 }

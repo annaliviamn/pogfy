@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Variáveis Globais
 const clientId = 'ecc7df9a04c14418b8deba08f82a9909';
@@ -100,10 +100,11 @@ atualizarTelaLogin();
 
 // Se já tiver token salvo, busca o perfil do usuário ao carregar
 if (localStorage.getItem(CHAVE_ACCESS_TOKEN)) {
-    buscarPerfilUsuario();
-    garantirPlaylist();
-    carregarPlaylist();
+    await buscarPerfilUsuario();
+    await garantirPlaylist();
+    await carregarPlaylist();
     escutarMensagens();
+    escutarReacoesMusicas();
 }
 
 // Verifica se a URL atual tem um código de autorização do Spotify
@@ -283,14 +284,59 @@ async function carregarPlaylist() {
                 <a href="${musica.external_urls.spotify}" target="_blank" class="nomeMusica">${musica.name}</a>
                 <span class="nomeArtista">${musica.artists[0].name}</span>
                 <span class="adicionadoPor">Adicionado por ${adicionadoPor}</span>
+                <div class="reacoesMusica">
+                    <button class="botaoReacaoMusica" data-id="${musica.id}" data-tipo="pog">
+                        <img src="assets/pog.png" alt="Pog" class="iconeReacao">
+                        <span id="pog-${musica.id}">0</span>
+                    </button>
+                    <button class="botaoReacaoMusica" data-id="${musica.id}" data-tipo="nog">
+                        <img src="assets/nog.png" alt="Nog" class="iconeReacao">
+                        <span id="nog-${musica.id}">0</span>
+                    </button>
+                </div>
             </div>
         `;
 
         listaPlaylist.appendChild(item);
+
+    });
+
+    // Clique dos botões de reação em música
+    document.querySelectorAll('.botaoReacaoMusica').forEach(botao => {
+        botao.addEventListener('click', () => reagirMusica(botao.dataset.id, botao.dataset.tipo));
     });
 
     montarRanking(data.items.items);
+}
 
+// Reagindo as músicas
+async function reagirMusica(trackId, tipo) {
+    const usuario = document.getElementById('nomeUsuario').textContent;
+
+    await setDoc(doc(db, 'reacoesMusicas', trackId), {
+        reacoes: { [usuario]: tipo }
+    }, { merge: true });
+}
+
+// Fazer a função de reação funcionar nas músicas
+function escutarReacoesMusicas() {
+    onSnapshot(collection(db, 'reacoesMusicas'), (snapshot) => {
+        snapshot.forEach((docSnap) => {
+            const dados = docSnap.data();
+            const trackId = docSnap.id;
+
+            const totalPog = contarReacoes(dados.reacoes, 'pog');
+            const totalNog = contarReacoes(dados.reacoes, 'nog');
+
+            const spanPog = document.getElementById(`pog-${trackId}`);
+            const spanNog = document.getElementById(`nog-${trackId}`);
+
+            console.log('Track ID:', trackId, '| Span POG encontrado?', spanPog);
+
+            if (spanPog) spanPog.textContent = totalPog;
+            if (spanNog) spanNog.textContent = totalNog;
+        });
+    });
 }
 
 // Pede um novo access_token usando o refresh_token
@@ -453,18 +499,37 @@ function escutarMensagens() {
             divMensagem.classList.add('mensagem');
             divMensagem.setAttribute('data-id', doc.id);
 
-            const botaoExcluir = ehMinhaMensagem
-              ? `<button class="botaoExcluirMensagem" data-id="${doc.id}">🗑</button>`
-              : '';
+                  const botoesAcao = ehMinhaMensagem
+                    ? `<button class="botaoEditarMensagem" data-id="${doc.id}">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                        </svg>
+                    </button>
+                    <button class="botaoExcluirMensagem" data-id="${doc.id}">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>
+                        </svg>
+                    </button>`
+                    : '';
 
-            divMensagem.innerHTML = `
-                <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
-                <div class="conteudoMensagem">
-                    <span class="autorMensagem">${mensagem.autor}</span>
-                    <p class="textoMensagem">${mensagem.texto}</p>
-                </div>
-                ${botaoExcluir}
-            `;
+                                divMensagem.innerHTML = `
+                                    <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
+                                    <div class="conteudoMensagem">
+                                        <span class="autorMensagem">${mensagem.autor}</span>
+                                        <p class="textoMensagem" id="texto-${doc.id}">${mensagem.texto}</p>
+                                        <div class="reacoesMensagem">
+                                            <button class="botaoReacao" data-id="${doc.id}" data-tipo="pog">
+                                                <img src="assets/pog.png" alt="Pog" class="iconeReacao">
+                                                ${contarReacoes(mensagem.reacoes, 'pog')}
+                                            </button>
+                                            <button class="botaoReacao" data-id="${doc.id}" data-tipo="nog">
+                                                <img src="assets/nog.png" alt="Nog" class="iconeReacao">
+                                                ${contarReacoes(mensagem.reacoes, 'nog')}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    ${botoesAcao}
+                                `;
 
             containerMensagens.appendChild(divMensagem);
         });
@@ -474,7 +539,32 @@ function escutarMensagens() {
             botao.addEventListener('click', () => excluirMensagem(botao.dataset.id));
         });
 
+        // Clique para edição mensagem
+        document.querySelectorAll('.botaoEditarMensagem').forEach(botao => {
+            botao.addEventListener('click', () => iniciarEdicao(botao.dataset.id));
+        });
+
+        // Clique para reações
+        document.querySelectorAll('.botaoReacao').forEach(botao => {
+            botao.addEventListener('click', () => reagirMensagem(botao.dataset.id, botao.dataset.tipo));
+        });
+
         containerMensagens.scrollTop = containerMensagens.scrollHeight;
+    });
+}
+
+// Reações mensagens e músicas
+function contarReacoes(reacoes, tipo) {
+    if (!reacoes) return 0;
+    return Object.values(reacoes).filter(r => r === tipo).length;
+}
+
+async function reagirMensagem(idMensagem, tipo) {
+    const usuario = document.getElementById('nomeUsuario').textContent;
+    const campo = `reacoes.${usuario}`;
+
+    await updateDoc(doc(db, 'mensagens', idMensagem), {
+        [campo]: tipo
     });
 }
 
@@ -482,3 +572,34 @@ function escutarMensagens() {
 async function excluirMensagem(id) {
     await deleteDoc(doc(db, 'mensagens', id));
 }
+
+// Editar textos das mensagens
+function iniciarEdicao (idMensagem) {
+    const spanTexto = document.getElementById(`texto-${idMensagem}`);
+    const textoAtual = spanTexto.textContent;
+
+    spanTexto.innerHTML = `
+        <input type="text" id="inputEdicao-${idMensagem}" value="${textoAtual}" class="inputEdicaoMensagem">
+        <button onclick="salvarEdicao('${idMensagem}')" class="botaoSalvarEdicao">Salvar</button>
+    `;
+
+    const input = document.getElementById(`inputEdicao-${idMensagem}`);
+    input.focus();
+    input.select();
+}
+
+// Salva o novo texto (editado) diretamente no Firestore
+async function salvarEdicao(idMensagem) {
+    const input = document.getElementById(`inputEdicao-${idMensagem}`);
+    const novoTexto = input.value.trim();
+
+    if (!novoTexto) {
+        return;
+    }
+
+    await updateDoc(doc(db, 'mensagens', idMensagem), {
+        texto: novoTexto
+    });
+}
+
+window.salvarEdicao = salvarEdicao;
