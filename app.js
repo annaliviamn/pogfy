@@ -222,26 +222,23 @@ async function buscarMusica(){
 }
 
 // Cria a playlist colaborativa do PogFy
-async function criarPlaylist(userId) {
-    const token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
-
-    const response = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+async function criarPlaylist() {
+    const response = await fetchSpotify('https://api.spotify.com/v1/me/playlists', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             name: 'PogFy',
-            description: 'Playlist colaborativa do grupo, feita no PogFy',
+            discription: 'Playlist colaborativa do grupo, feita no PogFy',
             public: false,
             collaborative: true
         })
     });
 
     const data = await response.json();
-    
-    // Guarda ID da playlist criada
-    localStorage.setItem('pogfy_playlist_id', data.id);
+
+    localStorage.setItem(CHAVE_PLAYLIST_ID, data.id);
 
     console.log(data);
 }
