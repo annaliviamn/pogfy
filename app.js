@@ -1,5 +1,6 @@
-import { db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 // Variáveis Globais
 const clientId = 'ecc7df9a04c14418b8deba08f82a9909';
@@ -644,3 +645,10 @@ window.voltarHome = voltarHome;
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
 }
+
+// Login Anônimo no Firebase
+signInAnonymously(auth).then(() => {
+    console.log('Login anônimo OK, UID:', auth.currentUser.uid);
+}).catch((erro) => {
+    console.error('Error ao autenticar anonimamente:', erro);
+});
