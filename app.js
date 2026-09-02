@@ -15,6 +15,8 @@ const CHAVE_PLAYLIST_ID = 'pogfy_playlist_id';
 
 let idsNaPlaylist = [];
 
+let primeiraCargaMensagens = true;
+
 // Gera um texto aleatório que vai ser usado como "code verifier" no login do Spotify
 function generateCodeVerifier(length) {
 
@@ -82,7 +84,7 @@ document.getElementById('loginButton').addEventListener('click', redirectToSpoti
 // Chamada para função do botão de buscar quando for clicado
 document.getElementById('botaoBuscar').addEventListener('click', buscarMusica);
 
-// Abrir e fechar modal de Chat e Ranking
+// Abrir e fechar modal de Chat, Ranking e Vibe Score
 document.getElementById('abrirChat').addEventListener('click', () => {
     document.getElementById('modalChat').classList.remove('oculto');
 });
@@ -99,6 +101,15 @@ document.getElementById('fecharRanking').addEventListener('click', () => {
     document.getElementById('modalRanking').classList.add('oculto');
 });
 
+document.getElementById('abrirVibeScore').addEventListener('click', () => {
+    document.getElementById('modalVibeScore').classList.remove('oculto');
+    exibirVibeScore();
+});
+
+document.getElementById('fecharVibeScore').addEventListener('click', () => {
+    document.getElementById('modalVibeScore').classList.add('oculto');
+});
+
 handleRedirect();
 atualizarTelaLogin();
 
@@ -110,6 +121,7 @@ if (localStorage.getItem(CHAVE_ACCESS_TOKEN)) {
     escutarMensagens();
     escutarReacoesMusicas();
     limparMensagensAntigas();
+    pedirPermissaoNotificacao();
 }
 
 // Verifica se a URL atual tem um código de autorização do Spotify
@@ -314,6 +326,50 @@ async function carregarPlaylist() {
     montarRanking(data.items.items);
 }
 
+// Buscar Gêneros dos Artistas
+async function buscarGenerosArtista(artistaId) {
+    const response = await fetchSpotify(`https://api.spotify.com/v1/artists/${artistaId}`);
+    const data = await response.json();
+    return data.genres;
+}
+
+// Calcular Vibe Score de Músicas
+function calcularVibeScore(musicas) {
+    const anos = musicas.map(musica => parseInt(musica.album.release_date.substring(0, 4)));
+    const anoMaisAntigo = Math.min(...anos);
+    const anoMaisRecente = Math.max(...anos);
+    
+    const nomesArtistas = musicas.map(musica => musica.artists[0].name);
+    const artistasUnicos = new Set(nomesArtistas);
+
+    const duracaoTotalMs = musicas.reduce((total, musica) => total + musica.duration_ms, 0);
+    const minutosTotais = Math.floor(duracaoTotalMs / 60000);
+
+    return {
+        anoMaisAntigo,
+        anoMaisRecente,
+        totalArtistas: artistasUnicos.size,
+        totalMusicas: musicas.length,
+        minutosTotais
+    };
+}
+
+// Exibir resultados do Vibe Score
+async function exibirVibeScore() {
+    document.getElementById('statAnos').textContent = 'Calculando...';
+
+    const playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+    const response = await fetchSpotify(`https://api.spotify.com/v1/playlists/${playlistId}`);
+    const data = await response.json();
+    const musicas = data.items.items.map(item => item.item);
+
+    const resultado = calcularVibeScore(musicas);
+
+    document.getElementById('statAnos').textContent = `${resultado.anoMaisAntigo} - ${resultado.anoMaisRecente}`;
+    document.getElementById('statArtistas').textContent = `${resultado.totalArtistas} de ${resultado.totalMusicas} músicas`;
+    document.getElementById('statDuracao').textContent = `${resultado.minutosTotais} minutos`;
+}
+
 // Reagindo as músicas
 async function reagirMusica(trackId, tipo) {
     const usuario = document.getElementById('nomeUsuario').textContent;
@@ -491,9 +547,21 @@ function escutarMensagens() {
 
     onSnapshot(consultaOrdenada, (snapshot) => {
         const containerMensagens = document.getElementById('mensagensChat');
-        containerMensagens.innerHTML = '';
-
         const nomeUsuarioLogado = document.getElementById('nomeUsuario').textContent;
+
+        snapshot.docChanges().forEach((change) => {
+            console.log('Tipo de mudança:', change.type, '| Autor:', change.doc.data().autor);
+            if (change.type === 'added' && !primeiraCargaMensagens) {
+                const mensagem = change.doc.data();
+                if (mensagem.autor !== nomeUsuarioLogado) {
+                    mostrarNotificacao('Nova mensagem no PogFy', `${mensagem.autor}: ${mensagem.texto}`);
+                }
+            }
+        });
+
+        primeiraCargaMensagens = false;
+
+        containerMensagens.innerHTML = '';
 
         snapshot.forEach((doc) => {
             const mensagem = doc.data();
@@ -503,8 +571,8 @@ function escutarMensagens() {
             divMensagem.classList.add('mensagem');
             divMensagem.setAttribute('data-id', doc.id);
 
-                  const botoesAcao = ehMinhaMensagem
-                    ? `<button class="botaoEditarMensagem" data-id="${doc.id}">
+            const botoesAcao = ehMinhaMensagem
+                ? `<button class="botaoEditarMensagem" data-id="${doc.id}">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
                         </svg>
@@ -516,39 +584,36 @@ function escutarMensagens() {
                     </button>`
                     : '';
 
-                                divMensagem.innerHTML = `
-                                    <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
-                                    <div class="conteudoMensagem">
-                                        <span class="autorMensagem">${mensagem.autor}</span>
-                                        <p class="textoMensagem" id="texto-${doc.id}">${mensagem.texto}</p>
-                                        <div class="reacoesMensagem">
-                                            <button class="botaoReacao" data-id="${doc.id}" data-tipo="pog">
-                                                <img src="assets/pog.png" alt="Pog" class="iconeReacao">
-                                                ${contarReacoes(mensagem.reacoes, 'pog')}
-                                            </button>
-                                            <button class="botaoReacao" data-id="${doc.id}" data-tipo="nog">
-                                                <img src="assets/nog.png" alt="Nog" class="iconeReacao">
-                                                ${contarReacoes(mensagem.reacoes, 'nog')}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    ${botoesAcao}
-                                `;
+            divMensagem.innerHTML = `
+                <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
+                <div class="conteudoMensagem">
+                    <span class="autorMensagem">${mensagem.autor}</span>
+                    <p class="textoMensagem" id="texto-${doc.id}">${mensagem.texto}</p>
+                    <div class="reacoesMensagem">
+                        <button class="botaoReacao" data-id="${doc.id}" data-tipo="pog">
+                            <img src="assets/pog.png" alt="Pog" class="iconeReacao">
+                            ${contarReacoes(mensagem.reacoes, 'pog')}
+                        </button>
+                        <button class="botaoReacao" data-id="${doc.id}" data-tipo="nog">
+                            <img src="assets/nog.png" alt="Nog" class="iconeReacao">
+                            ${contarReacoes(mensagem.reacoes, 'nog')}
+                        </button>
+                    </div>
+                </div>
+                ${botoesAcao}
+            `;
 
             containerMensagens.appendChild(divMensagem);
         });
 
-        // Clique para excluir recém-criado
         document.querySelectorAll('.botaoExcluirMensagem').forEach(botao => {
             botao.addEventListener('click', () => excluirMensagem(botao.dataset.id));
         });
 
-        // Clique para edição mensagem
         document.querySelectorAll('.botaoEditarMensagem').forEach(botao => {
             botao.addEventListener('click', () => iniciarEdicao(botao.dataset.id));
         });
 
-        // Clique para reações
         document.querySelectorAll('.botaoReacao').forEach(botao => {
             botao.addEventListener('click', () => reagirMensagem(botao.dataset.id, botao.dataset.tipo));
         });
@@ -570,6 +635,19 @@ async function reagirMensagem(idMensagem, tipo) {
     await updateDoc(doc(db, 'mensagens', idMensagem), {
         [campo]: tipo
     });
+}
+
+// Notificações do App
+function pedirPermissaoNotificacao() {
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+}
+
+function mostrarNotificacao(titulo, mensagem) {
+    if (Notification.permission === 'granted') {
+        new Notification(titulo, { body: mensagem });
+    }
 }
 
 // Excluir mensagem do chat

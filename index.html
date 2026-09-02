@@ -64,8 +64,31 @@
 
         <!-- Botões Flutuantes Chat e Ranking -->
         <div class="barraFlutuante">
+          <button id="abrirVibeScore" class="botaoFlutuante">Vibe Score</button>
           <button id="abrirRanking" class="botaoFlutuante botaoRanking">Ranking</button>
           <button id="abrirChat" class="botaoFlutuante">Chat</button>
+        </div>
+
+        <!-- Modal Vibe Score -->
+        <div id="modalVibeScore" class="oculto modalOverlay">
+          <div class="modalConteudo">
+            <div class="modalCabecalho">
+              <h2>Vibe Score</h2>
+              <button id="fecharVibeScore">X</button>
+            </div>
+            <div class="statVibe">
+              <span class="statLabel">Linha do tempo</span>
+              <span class="statValor" id="statAnos"></span>
+            </div>
+            <div class="statVibe">
+              <span class="statLabel">Diversidade de artistas</span>
+              <span class="statValor" id="statArtistas"></span>
+            </div>
+            <div class="statVibe">
+              <span class="statLabel">Tempo total</span>
+              <span class="statValor" id="statDuracao"></span>
+            </div>
+          </div>
         </div>
 
         <!-- Modal Ranking -->
