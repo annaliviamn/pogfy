@@ -139,6 +139,25 @@ input[type="text"]:focus {
     background-color: var(--cor-destaque-texto);
 }
 
+/* Botão para retornar da busca */
+#botaoVoltarBusca {
+    background: none;
+    border: 1px solid var(--cor-destaque-texto);
+    color: var(--cor-destaque-texto);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    align-self: flex-start;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#botaoVoltarBosca:hover {
+    background-color: var(--cor-destaque-fundo);
+    color: var(--cor-texto);
+}
+
 /* Espaçamento entre botões tela inicial */
 #buscaMusica,
 #enviarMensagem {

@@ -110,6 +110,8 @@ document.getElementById('fecharVibeScore').addEventListener('click', () => {
     document.getElementById('modalVibeScore').classList.add('oculto');
 });
 
+document.getElementById('botaoVoltarBusca').addEventListener('click', voltarParaPlaylist);
+
 handleRedirect();
 atualizarTelaLogin();
 
@@ -202,9 +204,17 @@ async function buscarPerfilUsuario() {
 
 // Buscar músicas através da API do Spotify com base no texto digitado
 async function buscarMusica(){
-    document.getElementById('listaPlaylist').classList.add('oculto');
     const termo = document.getElementById('inputBusca').value;
     
+    // Busca vazia: não faz nada, para a playlist não sumir à toa
+    if(!termo) {
+        return;
+    }
+
+    // Esconde a playlist e mostra o botão de voltar
+    document.getElementById('listaPlaylist').classList.add('oculto');
+    document.getElementById('botaoVoltarBusca').classList.remove('oculto');
+
     const response = await fetchSpotify(`https://api.spotify.com/v1/search?q=${encodeURIComponent(termo)}&type=track&limit=5`);
 
     const data = await response.json();
@@ -719,6 +729,7 @@ async function limparMensagensAntigas() {
 
 // Botão de voltar para a Dashboard
 function voltarHome() {
+    document.getElementById('botaoVoltarBusca').classList.add('oculto');
     document.getElementById('modalRanking').classList.add('oculto');
     document.getElementById('modalChat').classList.add('oculto');
     document.getElementById('listaPlaylist').classList.remove('oculto');
@@ -728,6 +739,14 @@ function voltarHome() {
 }
 
 window.voltarHome = voltarHome;
+
+// Fecha a busca e traz a playlist de volta
+function voltarParaPlaylist() {
+    document.getElementById('listaPlaylist').classList.remove('oculto');
+    document.getElementById('resultadosBusca').innerHTML = '';
+    document.getElementById('inputBusca').value = '';
+    document.getElementById('botaoVoltarBusca').classList.add('oculto');
+}
 
 // Registra o Service Worker
 if ('serviceWorker' in navigator) {
