@@ -1,5 +1,5 @@
 // Cache Service Worker
-const CACHE_NOME = 'pogfy-v2';
+const CACHE_NOME = 'pogfy-v3';
 
 const ARQUIVOS_ESSENCIAIS = [
   'index.html',

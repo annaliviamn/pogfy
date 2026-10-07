@@ -1,5 +1,5 @@
 import { db, auth } from './firebase-config.js';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 // Variáveis Globais
@@ -258,14 +258,24 @@ async function criarPlaylist() {
     console.log(data);
 }
 
-// Garante que existe uma playlist do PogFy
+// Busca no Firestore o ID da playlist do grupo (para todos os usuários)
 async function garantirPlaylist() {
-    let playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
-
-    if (!playlistId) {
-        await criarPlaylist();
-        playlistId = localStorage.getItem(CHAVE_PLAYLIST_ID);
+    // Espera o login anônimo do Firebase terminar de ler o banco
+    await auth.authStateReady();
+    if (!auth.currentUser) {
+        await signInAnonymously(auth);
     }
+
+    const configSnap = await getDoc(doc(db, 'config', 'playlist'));
+
+    // Se o documento não existir, avisa e para (não criando uma playlist nova)
+    if(!configSnap.exists()) {
+        console.error('Documento config/playlist não encontrada no Firestore.');
+        return;
+    }
+
+    const playlistId = configSnap.data().id;
+    localStorage.setItem(CHAVE_PLAYLIST_ID, playlistId);
 
     console.log('ID da playlist em uso:', playlistId);
 }
