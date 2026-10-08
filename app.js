@@ -189,6 +189,39 @@ function atualizarTelaLogin() {
     }
 }
 
+// Garante que o login anônimo do Firebase já terminou antes de usar o banco
+async function garantirAutenticacao() {
+    await auth.authStateReady();
+    if (!auth.currentUser) {
+        await signInAnonymously(auth);
+    }
+}
+
+// Guarda no Firestore o nome e a foto de quem entrou, ligados ao ID do Spotify
+async function salvarUsuario(id, nome, foto) {
+    try {
+        await garantirAutenticacao();
+        await setDoc(doc(db, 'usuarios', id), { nome: nome, foto: foto }, { merge: true });
+    } catch (erro) {
+        console.error('Não foi possível salvar o usuário:', erro);
+    }
+}
+
+// Busca no Firestore todos os usuários registrados (ID do Spotify - nome e foto)
+async function buscarUsuarios() {
+    const usuarios = {};
+    try {
+        await garantirAutenticacao();
+        const snapshot = await getDocs(collection(db, 'usuarios'));
+        snapshot.forEach((docSnap) => {
+            usuarios[docSnap.id] = docSnap.data();
+        });
+    } catch (erro) {
+        console.error('Não foi possível buscar os usuários:', erro);
+    }
+    return usuarios;
+}
+
 // Sincroniza foto e nome do perfil do Spotify para o Pogfy
 async function buscarPerfilUsuario() {
     const response = await fetchSpotify('https://api.spotify.com/v1/me');
@@ -200,6 +233,9 @@ async function buscarPerfilUsuario() {
     if (data.images && data.images.length > 0) {
         document.getElementById('fotoUsuario').src = data.images[0].url;
     }
+
+    const foto = (data.images && data.images.length > 0) ? data.images[0].url: '';
+    await salvarUsuario(data.id, data.display_name, foto);
 }
 
 // Buscar músicas através da API do Spotify com base no texto digitado
@@ -306,10 +342,13 @@ async function carregarPlaylist() {
 
     idsNaPlaylist = [];
 
+    const usuarios = await buscarUsuarios();
+
     data.items.items.forEach(itemPlaylist => {
         const musica = itemPlaylist.item;
         idsNaPlaylist.push(musica.id);
-        const adicionadoPor = itemPlaylist.added_by.id;
+        const idAutor = itemPlaylist.added_by.id;
+        const adicionadoPor = usuarios[idAutor] ? usuarios[idAutor].nome : idAutor;
         const capa = musica.album.images[0] ? musica.album.images[0].url: '';
 
         const item = document.createElement('li');
