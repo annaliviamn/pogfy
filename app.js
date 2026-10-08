@@ -15,6 +15,8 @@ const CHAVE_PLAYLIST_ID = 'pogfy_playlist_id';
 
 let idsNaPlaylist = [];
 
+let appIniciado = false;
+
 let primeiraCargaMensagens = true;
 
 // Gera um texto aleatório que vai ser usado como "code verifier" no login do Spotify
@@ -79,6 +81,22 @@ async function redirectToSpotifyAuthorize() {
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
+// Carrega perfil, playlist, chat e reações (só roda uma vez por abertura da página)
+async function iniciarApp() {
+    if (appIniciado) {
+        return;
+    }
+    appIniciado = true;
+
+    await buscarPerfilUsuario();
+    await garantirPlaylist();
+    await carregarPlaylist();
+    escutarMensagens();
+    escutarReacoesMusicas();
+    limparMensagensAntigas();
+    pedirPermissaoNotificacao();
+}
+
 // Pega o botão de login pelo id, e chama a função de redirecionamento quando for clicado
 document.getElementById('loginButton').addEventListener('click', redirectToSpotifyAuthorize);
 // Chamada para função do botão de buscar quando for clicado
@@ -117,13 +135,7 @@ atualizarTelaLogin();
 
 // Se já tiver token salvo, busca o perfil do usuário ao carregar
 if (localStorage.getItem(CHAVE_ACCESS_TOKEN)) {
-    await buscarPerfilUsuario();
-    await garantirPlaylist();
-    await carregarPlaylist();
-    escutarMensagens();
-    escutarReacoesMusicas();
-    limparMensagensAntigas();
-    pedirPermissaoNotificacao();
+    await iniciarApp();
 }
 
 // Verifica se a URL atual tem um código de autorização do Spotify
@@ -301,7 +313,6 @@ async function criarPlaylist() {
 
     localStorage.setItem(CHAVE_PLAYLIST_ID, data.id);
 
-    console.log(data);
 }
 
 // Busca no Firestore o ID da playlist do grupo (para todos os usuários)
@@ -323,7 +334,6 @@ async function garantirPlaylist() {
     const playlistId = configSnap.data().id;
     localStorage.setItem(CHAVE_PLAYLIST_ID, playlistId);
 
-    console.log('ID da playlist em uso:', playlistId);
 }
 
 // Busca os dados da playlist (nome, faixas) e atualiza a tela
@@ -382,7 +392,7 @@ async function carregarPlaylist() {
         botao.addEventListener('click', () => reagirMusica(botao.dataset.id, botao.dataset.tipo));
     });
 
-    montarRanking(data.items.items);
+    montarRanking(data.items.items, usuarios);
 }
 
 // Buscar Gêneros dos Artistas
@@ -450,8 +460,6 @@ function escutarReacoesMusicas() {
 
             const spanPog = document.getElementById(`pog-${trackId}`);
             const spanNog = document.getElementById(`nog-${trackId}`);
-
-            console.log('Track ID:', trackId, '| Span POG encontrado?', spanPog);
 
             if (spanPog) spanPog.textContent = totalPog;
             if (spanNog) spanNog.textContent = totalNog;
@@ -538,11 +546,10 @@ async function adicionarMusica(uri) {
     });
 
     const data = await response.json();
-    console.log('Música adicionada:', data);
 }
 
 // Conta quantas músicas cada pessoa adicionou, e mostra o ranking na tela
-function montarRanking(items) {
+function montarRanking(items, usuarios = {}) {
     const contagem = {};
 
     items.forEach(itemPlaylist => {
@@ -558,8 +565,12 @@ function montarRanking(items) {
     const listaContribuidores = document.getElementById('listaContribuidores');
     listaContribuidores.innerHTML = '';
 
+    // Ordena do maior pro menor número de músicas
+    const ranking = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
+
     let posicao = 1;
-    for (const usuario in contagem) {
+    for (const [usuario] of ranking) {
+        const nome = usuarios[usuario] ? usuarios[usuario].nome : usuario;
         const item = document.createElement('li');
         item.classList.add('itemRanking');
 
@@ -569,7 +580,7 @@ function montarRanking(items) {
         else if (posicao === 3) medalha = '🥉 ';
 
         item.innerHTML = `
-            <span class="nomeContribuidor">${medalha}${usuario}</span>
+            <span class="nomeContribuidor">${medalha}${nome}</span>
             <span class="quantidadeContribuidor">${contagem[usuario]} música(s)</span>
         `;
         listaContribuidores.appendChild(item);
@@ -609,7 +620,6 @@ function escutarMensagens() {
         const nomeUsuarioLogado = document.getElementById('nomeUsuario').textContent;
 
         snapshot.docChanges().forEach((change) => {
-            console.log('Tipo de mudança:', change.type, '| Autor:', change.doc.data().autor);
             if (change.type === 'added' && !primeiraCargaMensagens) {
                 const mensagem = change.doc.data();
                 if (mensagem.autor !== nomeUsuarioLogado) {
@@ -644,7 +654,7 @@ function escutarMensagens() {
                     : '';
 
             divMensagem.innerHTML = `
-                <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem">
+                <img src="${mensagem.fotoAutor || ''}" alt="Foto" class="fotoMensagem" onerror="this.onerror=null; this.src='assets/logo.png'">
                 <div class="conteudoMensagem">
                     <span class="autorMensagem">${mensagem.autor}</span>
                     <p class="textoMensagem" id="texto-${doc.id}">${mensagem.texto}</p>
@@ -794,7 +804,6 @@ if ('serviceWorker' in navigator) {
 
 // Login Anônimo no Firebase
 signInAnonymously(auth).then(() => {
-    console.log('Login anônimo OK, UID:', auth.currentUser.uid);
 }).catch((erro) => {
     console.error('Error ao autenticar anonimamente:', erro);
 });
