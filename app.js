@@ -180,7 +180,7 @@ async function handleRedirect() {
     localStorage.setItem(CHAVE_REFRESH_TOKEN, data.refresh_token);
 
     atualizarTelaLogin();
-    buscarPerfilUsuario();
+    iniciarApp();
 
     // Remove o ?code=... da URL depois de usá-lo, sem recarregar a página
     window.history.replaceState({}, document.title, window.location.pathname);
