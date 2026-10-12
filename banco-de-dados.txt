@@ -1,0 +1,26 @@
+OBSERVACAO SOBRE O FORMATO
+O Pogfy usa o Cloud Firestore, um banco NoSQL. Nele nao existe script de criacao de tabelas (CREATE TABLE): as colecoes e os documentos sao criados pelo proprio app no primeiro uso. Por isso, este arquivo documenta a estrutura do banco (colecoes, campos, tipos e exemplos) e as regras de seguranca que controlam o acesso, que sao o equivalente ao script de criacao e manutencao do banco.
+
+REGRAS DE SEGURANCA FIRESTORE
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /mensagens/{mensagemId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    match /reacoesMusicas/{musicaId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    match /config/{documento} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /usuarios/{usuarioId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

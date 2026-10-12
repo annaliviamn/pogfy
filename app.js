@@ -159,7 +159,7 @@ async function handleRedirect() {
         code_verifier: codeVerifier
     });
 
-    // Faz a chama para o Spotify trocando o código pelo token de acesso
+    // Faz a chamada para o Spotify trocando o código pelo token de acesso
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
@@ -294,7 +294,7 @@ async function buscarMusica(){
     });
 }
 
-// Cria a playlist colaborativa do PogFy
+// O ID gerado foi salvo em config/playlist no Firestore e hoje o app só lê esse ID.
 async function criarPlaylist() {
     const response = await fetchSpotify('https://api.spotify.com/v1/me/playlists', {
         method: 'POST',
@@ -503,7 +503,7 @@ async function atualizarToken() {
     }
 }
 
-// Faz uma chamada autenticada à API do Spofity
+// Faz uma chamada autenticada à API do Spotify
 async function fetchSpotify(url, opcoes = {}) {
     let token = localStorage.getItem(CHAVE_ACCESS_TOKEN);
 
